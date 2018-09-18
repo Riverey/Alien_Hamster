@@ -1,4 +1,4 @@
-# Project Title
+# Alien hamster
 
 A game about an alien hamster that crashed onto Earth and is rolling around in his ball-like spaceship and uses its powers to change gravity to clear its path and collect humans to turn them into biomass and regenerate.
 
