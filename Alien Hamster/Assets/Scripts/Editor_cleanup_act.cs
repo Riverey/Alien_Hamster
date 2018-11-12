@@ -1,28 +1,25 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 
-public class Editor_cleanup : MonoBehaviour
+[ExecuteInEditMode]
+public class Editor_cleanup_act : MonoBehaviour
 {
     [Header("Storage gameobjects")]
     public GameObject roadsStorage;
     public GameObject decorationsStorage;
     public GameObject buildingsStorage;
     public GameObject movableBuildingsStorage;
-
-
-    [ExecuteInEditMode]
+ 
     private void Start()
     {
         roadsStorage = GameObject.Find("Roads");
         decorationsStorage = GameObject.Find("Decorations");
         buildingsStorage = GameObject.Find("Buildings");
-        movableBuildingsStorage = GameObject.Find("MovableBuildings");
-
+        movableBuildingsStorage = GameObject.Find("Movable buildings");
     }
 
     public void CleanEditor()
     {
-        GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
+        GameObject[] allObjects = FindObjectsOfType<GameObject>();
 
         for (int i = 0; i < allObjects.Length; i++)
         {

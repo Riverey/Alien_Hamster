@@ -37,18 +37,12 @@ public class CameraControl : MonoBehaviour {
     [Range(0.0f, 2.0f)]
     public float gravityOffsetMultyplier = 1.0f;
 
-    public bool isShaking;
-    private float shakeDesiredDuration = 0.0f;
+    public static bool isShaking;
+    private static float shakeDesiredDuration = 0.0f;
     private float shakeDuratiion = 0.0f;
-    public float magnitude = 0.0f;
+    public static float magnitude = 0.0f;
 
-    private TiltControl tiltController;
-
-    private void Start()
-    {
-        tiltController = FindObjectOfType<TiltControl>();
-    }
-    public void ShakeRequest(float dur, float magn)
+    public static void ShakeRequest(float dur, float magn)
     {
         isShaking = true;
         shakeDesiredDuration = dur;
@@ -64,10 +58,12 @@ public class CameraControl : MonoBehaviour {
     }
 
     void Update () {
-        gravityOffset = Quaternion.Euler(90, 0, 0) * tiltController.globalTilt * gravityOffsetMultyplier;
+
+        gravityOffset = TiltControl.globalTilt * gravityOffsetMultyplier;
         Vector3 desiredPosition = new Vector3 (target.position.x + gravityOffset.x, target.position.y + offset, target.position.z + gravityOffset.z);
         Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
         transform.position = smoothedPosition;
+
         if (isShaking && shakeDuratiion < shakeDesiredDuration)
         {
             CameraShake();
