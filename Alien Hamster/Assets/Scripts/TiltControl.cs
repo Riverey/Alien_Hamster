@@ -24,11 +24,13 @@ public class TiltControl : MonoBehaviour
     [Range(0, 1)]
     public float virtualTiltPower = 1.0f;
 
-    private static bool phoneConnected = false; //determines the control methode for the character
+    public static bool phoneConnected = false; //determines the control methode for the character
+    public bool _phoneConnected = false;
 
     void Start () {
         calibrateAccelerometer();
-        DetectPhone();
+        //DetectPhone();
+       phoneConnected = _phoneConnected;
     }    
 
     private void DetectPhone ()
@@ -40,6 +42,12 @@ public class TiltControl : MonoBehaviour
         }
         else
             Debug.LogWarning("No phone detected!");
+    }
+
+    public void ChangeMode()
+    {
+        phoneConnected = !phoneConnected;
+        //Debug.Log(phoneConnected);
     }
 
     //Method for calibration 
@@ -62,10 +70,13 @@ public class TiltControl : MonoBehaviour
     void Update()
     {
         if (phoneConnected)
-            globalTilt = Quaternion.Euler(90, 0, 0) * getAccelerometer(Input.acceleration);
+        {
+            Vector3 vector3 = getAccelerometer(Input.acceleration);
+            globalTilt = Quaternion.Euler(90, 0, 0) * new Vector3(getAccelerometer(Input.acceleration).x / (1.0f / virtualTiltPower), getAccelerometer(Input.acceleration).y / (1.0f / virtualTiltPower), 1.0f);
+        }
 
         else
-        {
+        {            
             if (Input.GetKey("a"))
                 virtualTilt.x = Mathf.Clamp(virtualTilt.x - virtualTiltPower * Time.deltaTime, -1, 0);
             if (Input.GetKey("d"))

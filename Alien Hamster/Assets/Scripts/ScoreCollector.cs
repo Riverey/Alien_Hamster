@@ -2,12 +2,15 @@
 
 public class ScoreCollector : MonoBehaviour {
 
-    private void OnCollisionEnter(Collision collision)
+    public AudioSource coinPickup;
+
+    private void OnTriggerEnter(Collider collider)
     {
-        if (collision.gameObject.tag == "ScorePoint")
+        if (collider.gameObject.tag == "ScorePoint")
         {
-            ScoreManager.AddScore();
-            Destroy(collision.gameObject);
+            GameManager.AddScore();
+            Destroy(collider.gameObject);
+            coinPickup.Play();
         }
     }
 }

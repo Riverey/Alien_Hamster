@@ -6,7 +6,7 @@ public class MovableBlock : MonoBehaviour
 {
     private Rigidbody rigid;
     private BoxCollider collider;
-    
+
     public GameObject dangerBlock;
 
     protected GameObject buildingModel;
@@ -27,6 +27,10 @@ public class MovableBlock : MonoBehaviour
     [Header("Sounds")]
     public AudioSource impactSound;
     public AudioSource movingSound;
+
+    public AudioSource alert;
+    private bool alertIsAnoying = false;
+
     public GameObject impactEffect;
     public GameObject colliderOne;
     public GameObject colliderTwo;
@@ -57,7 +61,7 @@ public class MovableBlock : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.isStatic)
+        if (collision.gameObject.tag != "Player")
         {
             switch (movingDirection)
             {
@@ -73,40 +77,45 @@ public class MovableBlock : MonoBehaviour
         }
     }
 
-    private void Impact (Collision collision)
+    private void Impact(Collision collision)
     {
         impactSound.Play();
         CameraControl.ShakeRequest(0.1f, 0.2f);
-        GameObject impactEffectLoaded = null;
 
+        if (collision.gameObject.name.Contains("Construction"))
+            collision.gameObject.GetComponent<ConstructionBuilding>().DestroyTheBuilding();
+
+        GameObject impactEffectLoaded = null;
         switch (movingDirection)
-        {
-            case MovingDirection.UpDown:
-                if (collision.relativeVelocity.z < 0.0f)
-                {
-                    impactEffectLoaded = Instantiate(impactEffect, colliderOne.transform);
-                    impactEffectLoaded.transform.position = Vector3.zero;
-                }
-                else
-                {
-                    Instantiate(impactEffect, colliderTwo.transform);
-                    impactEffectLoaded.transform.position = Vector3.zero;
-                }
+            {
+                case MovingDirection.UpDown:
+                    if (collision.relativeVelocity.z < 0.0f)
+                    {
+                        impactEffectLoaded = Instantiate(impactEffect, colliderOne.transform);
+                        impactEffectLoaded.transform.localPosition = Vector3.zero;
+                    }
+                    else
+                    {
+                        impactEffectLoaded = Instantiate(impactEffect, colliderTwo.transform);
+                        impactEffectLoaded.transform.localPosition = Vector3.zero;
+                    }
                     break;
-            case MovingDirection.LeftRight:
-                if (collision.relativeVelocity.x < 0.0f)
-                {
-                    Instantiate(impactEffect, colliderOne.transform);
-                    impactEffectLoaded.transform.position = Vector3.zero;
-                }
-                else
-                {
-                    Instantiate(impactEffect, colliderTwo.transform);
-                    impactEffectLoaded.transform.position = Vector3.zero;
-                }
-                break;
-        }
-        
+                case MovingDirection.LeftRight:
+                    if (collision.relativeVelocity.x < 0.0f)
+                    {
+                        impactEffectLoaded = Instantiate(impactEffect, colliderOne.transform);
+                        impactEffectLoaded.transform.localPosition = Vector3.zero;
+                        impactEffectLoaded.transform.rotation = Quaternion.Euler(new Vector3(0.0f, 90.0f, 0.0f));
+                    }
+                    else
+                    {
+                        impactEffectLoaded = Instantiate(impactEffect, colliderTwo.transform);
+                        impactEffectLoaded.transform.localPosition = Vector3.zero;
+                        impactEffectLoaded.transform.rotation = Quaternion.Euler(new Vector3(0.0f, 90.0f, 0.0f));
+                    }
+                    break;
+            }
+
     }
 
     private void FixedUpdate()
@@ -130,14 +139,22 @@ public class MovableBlock : MonoBehaviour
         if (dangerBlock != null && (Mathf.Abs(rigid.velocity.x) > dangerVelocity || Mathf.Abs(rigid.velocity.z) > dangerVelocity))
         {
             dangerBlock.SetActive(true);
-            if(!movingSound.isPlaying)
+            if (!movingSound.isPlaying)
                 movingSound.Play();
+            if (!alert.isPlaying && !alertIsAnoying)
+            {
+                alert.Play();
+                alertIsAnoying = true;
+            }
         }
         else
         {
             dangerBlock.SetActive(false);
             if (movingSound.isPlaying)
+            {
                 movingSound.Stop();
+                alertIsAnoying = false;
+            }
         }
     }
 
@@ -149,61 +166,4 @@ public class MovableBlock : MonoBehaviour
             Gizmos.DrawIcon(transform.position, "MB_LeftRight.png", true);
     }
 }
-
-/*public class MovableBlockSettings : MonoBehaviour
-{
-
-    public void Start()
-    {
-
-        if (gameObject.GetComponent<Rigidbody>() == null)
-            rigid = gameObject.AddComponent<Rigidbody>();
-        else
-            rigid = gameObject.GetComponent<Rigidbody>();
-
-        rigid.useGravity = false;
-        rigid.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezeRotation;
-
-        if (gameObject.GetComponent<BoxCollider>() == null)
-        { collider = gameObject.AddComponent<BoxCollider>(); }
-        else
-        { collider = gameObject.GetComponent<BoxCollider>(); }
-
-        tiltControl = FindObjectOfType<TiltControl>();
-
-        if (dangerBlock == null)
-        {
-            dangerBlock = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            dangerBlock.transform.parent = gameObject.transform;
-            dangerBlock.name = "Danger_block";
-            DestroyImmediate(dangerBlock.GetComponent<BoxCollider>());
-            dangerBlock.transform.localScale = new Vector3(blockSize.x + 0.1f, dangerBlock.transform.localScale.y, blockSize.y + 0.1f);
-            dangerBlock.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
-        }
-
-    }
-    public void LateUpdate()
-    {
-        if (movingDirection != oldDirection)
-        {
-            if (movingDirection == MovingDirection.UpDown)
-                rigid.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezeRotation;
-            else if (movingDirection == MovingDirection.LeftRight)
-                rigid.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotation;
-            else if (movingDirection == MovingDirection.BothDirections)
-                rigid.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
-            oldDirection = movingDirection;
-        }
-        if (new Vector3(blockSize.x, 1, blockSize.y) != collider.size)
-        {
-            collider.size = new Vector3(blockSize.x - 0.1f, 0.8f, blockSize.y - 0.1f);
-            colliderSize = collider.size;
-        }
-        if (dangerBlock != null)
-        {
-            dangerBlock.transform.localScale = new Vector3(blockSize.x + 0.1f, dangerBlock.transform.localScale.y, blockSize.y + 0.1f);
-        }
-    }
-}*/
-
 

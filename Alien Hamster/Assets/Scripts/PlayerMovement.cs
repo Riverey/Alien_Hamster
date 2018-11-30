@@ -9,6 +9,8 @@ public class PlayerMovement : MonoBehaviour {
     public float rotationSpeed = 1.0f;
     private Rigidbody rigid;
 
+    public Animator animator;
+
     public GameObject playerModel;
     private Vector3 tilt;
     private Vector3 test;
@@ -32,13 +34,16 @@ public class PlayerMovement : MonoBehaviour {
 
         if (new Vector3 (tilt.x, 0.0f, tilt.z) != Vector3.zero)
         {
-            playerModel.transform.rotation = Quaternion.Lerp(playerModel.transform.rotation, Quaternion.LookRotation(new Vector3(tilt.x, 0.1f, tilt.z), Vector3.up), Time.deltaTime * rotationSpeed);
+            playerModel.transform.rotation = Quaternion.Lerp(playerModel.transform.rotation, Quaternion.LookRotation(new Vector3(tilt.x, 0.0f, tilt.z), Vector3.up), Time.deltaTime * rotationSpeed);
         }
         else if (rigid.velocity != Vector3.zero)
         {
             playerModel.transform.rotation = Quaternion.Lerp(playerModel.transform.rotation, Quaternion.LookRotation(rigid.velocity, Vector3.up), Time.deltaTime * rotationSpeed);
             if (DebugManager.debugEnabled) Debug.DrawRay(transform.position, rigid.velocity * 2, Color.yellow);
         }
+
+        float velocity = Mathf.Max(Mathf.Abs(rigid.velocity.x), Mathf.Abs(rigid.velocity.z));
+        animator.SetFloat("WalkSpeed", velocity);
 
     }
 }
